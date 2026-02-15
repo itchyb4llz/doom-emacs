@@ -1,13 +1,34 @@
 ;; -*- lexical-binding: t; -*-
 
+;; ------ USER INTERFACE
+;; Frame size
 (add-to-list 'default-frame-alist '(width  . 120))
 (add-to-list 'default-frame-alist '(height . 64))
 
+;; Theme & Font
 (setq doom-theme 'doom-one)
-(setq doom-font (font-spec :family "Agave Nerd Font" :size 15))
+(setq doom-font (font-spec :family "Agave Nerd Font" :size 14))
 
-(setq display-line-numbers-type nil)
+;; Column number in modeline
+(column-number-mode 1)
+
+;; Line numbers (Doom way)
+;; Options: nil, t, 'relative
+(setq display-line-numbers-type 'relative)
+
+;; Disable line numbers in specific modes
+(dolist (mode '(org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
 (setq confirm-kill-emacs nil)
+
+;; ------ INDENTATION
+(setq-default tab-width 2)
+(setq-default evil-shift-width 2)
+(setq-default indent-tabs-mode nil)
 
 ;; ------ ORG
 (setq org-directory "~/org")
@@ -66,6 +87,21 @@
           (concat txt " (" proj ")")
         txt)))
 
+  (setq org-agenda-custom-commands
+        '(("d" "Daily Agenda + Tasks with Project"
+           ((agenda ""
+                    ((org-agenda-span 1)
+                     (org-agenda-overriding-header "Today's Schedule")))
+            (alltodo ""
+                     ((org-agenda-overriding-header "Meetings")
+                      (org-agenda-files '("~/org/meetings.org"))))
+            (alltodo ""
+                     ((org-agenda-overriding-header "Tasks")
+                      (org-agenda-files '("~/org/tasks.org"))))
+            (alltodo ""
+                     ((org-agenda-overriding-header "Inbox")
+                      (org-agenda-files '("~/org/inbox.org"))))))))
+
   ;; Refile
   (setq org-refile-targets '((nil :maxlevel . 1)
                              (org-agenda-files :maxlevel . 1))
@@ -112,8 +148,18 @@
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
 )
 
-;; ------ EVIL ORG
+;; ------ ORG VISUAL CENTERING
+(after! org
+  (use-package! visual-fill-column
+    :hook (org-mode . jd/org-mode-visual-fill)
+    :config
+    (setq visual-fill-column-width 145
+          visual-fill-column-center-text t)))
 
+(defun jd/org-mode-visual-fill ()
+  (visual-fill-column-mode 1))
+
+;; ------ EVIL ORG
 (use-package! evil-org
   :after org
   :hook ((org-mode . evil-org-mode)
@@ -174,7 +220,7 @@
          ("C-c n c" . org-roam-capture)
          ("C-c n l" . org-roam-buffer-toggle))
   :config
-  (org-roam-db-autosync-enable))
+  (org-roam-db-autosync-mode))
 
 ;; ------ AUTO ARCHIVE
 
