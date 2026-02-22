@@ -2,8 +2,17 @@
 
 ;; ------ USER INTERFACE
 ;; Frame size
-(add-to-list 'default-frame-alist '(width  . 120))
-(add-to-list 'default-frame-alist '(height . 64))
+(setq default-frame-alist
+      '((width . 110)
+        (height . 64)))
+
+(setq visual-fill-column-width 120
+      visual-fill-column-center-text t)
+
+(add-hook 'org-mode-hook #'visual-fill-column-mode)
+
+(defun jd/org-mode-visual-fill ()
+  (visual-fill-column-mode 1))
 
 ;; Theme & Font
 (setq doom-theme 'doom-one)
@@ -37,14 +46,6 @@
   (org-indent-mode)
   (visual-line-mode 1)
   (setq evil-auto-indent nil))
-
-(defun jd/org-get-projects ()
-  "Return all headings from projects.org."
-  (when (file-exists-p "~/org/projects.org")
-    (with-current-buffer (find-file-noselect "~/org/projects.org")
-      (org-map-entries
-       (lambda ()
-         (org-get-heading t t t t))))))
 
 (after! org
 
@@ -116,11 +117,13 @@
   (push '("conf-unix" . conf-unix) org-src-lang-modes)
 
   ;; Evil keybindings
-  (evil-define-key '(normal insert visual) org-mode-map
-    (kbd "C-j") #'org-next-visible-heading
-    (kbd "C-k") #'org-previous-visible-heading
-    (kbd "M-j") #'org-metadown
-    (kbd "M-k") #'org-metaup)
+  ;;(after! evil
+  ;;  (after! org
+  ;;   (evil-define-key '(normal insert visual) org-mode-map
+  ;;     (kbd "C-j") #'org-next-visible-heading
+  ;;     (kbd "C-k") #'org-previous-visible-heading
+  ;;     (kbd "M-j") #'org-metadown
+  ;;     (kbd "M-k") #'org-metaup)))
 
   ;; Faces
   (set-face-attribute 'org-document-title nil
@@ -147,17 +150,6 @@
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
 )
-
-;; ------ ORG VISUAL CENTERING
-(after! org
-  (use-package! visual-fill-column
-    :hook (org-mode . jd/org-mode-visual-fill)
-    :config
-    (setq visual-fill-column-width 145
-          visual-fill-column-center-text t)))
-
-(defun jd/org-mode-visual-fill ()
-  (visual-fill-column-mode 1))
 
 ;; ------ EVIL ORG
 (use-package! evil-org
