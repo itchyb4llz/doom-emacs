@@ -40,7 +40,7 @@
 (setq-default indent-tabs-mode nil)
 
 ;; ------ ORG
-(setq org-directory "~/org")
+(setq org-directory "~/st/org")
 
 (defun jd/org-mode-setup ()
   (org-indent-mode)
@@ -62,11 +62,11 @@
         org-cycle-separator-lines 2)
 
   (setq org-agenda-files
-        '("~/org/archive.org"
-          "~/org/tasks.org"
-          "~/org/inbox.org"
-          "~/org/meetings.org"
-          "~/org/projects.org"))
+        '("~/st/org/archive.org"
+          "~/st/org/tasks.org"
+          "~/st/org/inbox.org"
+          "~/st/org/meetings.org"
+          "~/st/org/projects.org"))
 
   (setq org-log-done 'time
         org-log-into-drawer t
@@ -95,13 +95,13 @@
                      (org-agenda-overriding-header "Today's Schedule")))
             (alltodo ""
                      ((org-agenda-overriding-header "Meetings")
-                      (org-agenda-files '("~/org/meetings.org"))))
+                      (org-agenda-files '("~/st/org/meetings.org"))))
             (alltodo ""
                      ((org-agenda-overriding-header "Tasks")
-                      (org-agenda-files '("~/org/tasks.org"))))
+                      (org-agenda-files '("~/st/org/tasks.org"))))
             (alltodo ""
                      ((org-agenda-overriding-header "Inbox")
-                      (org-agenda-files '("~/org/inbox.org"))))))))
+                      (org-agenda-files '("~/st/org/inbox.org"))))))))
 
   ;; Refile
   (setq org-refile-targets '((nil :maxlevel . 1)
@@ -163,7 +163,7 @@
 ;; ------ ORG ROAM
 (defun jd/org-get-projects ()
   "Return a list of project names from projects.org top-level headings."
-  (let ((file "~/org/projects.org")
+  (let ((file "~/st/org/projects.org")
         projects)
     (when (file-exists-p file)
       (with-current-buffer (find-file-noselect file)
@@ -175,7 +175,7 @@
 
 (use-package! org-roam
   :custom
-  (org-roam-directory "~/org/")
+  (org-roam-directory "~/st/org/")
   (org-roam-completion-everywhere t)
 
   (org-roam-capture-templates
@@ -215,14 +215,13 @@
   (org-roam-db-autosync-mode))
 
 ;; ------ AUTO ARCHIVE
-
-(setq org-archive-location "~/org/archive.org::")
+(setq org-archive-location "~/st/org/archive.org::")
 (setq org-archive-mark-done nil)
 
 (defun jd/org-auto-archive-done-tasks ()
   (when (and (buffer-file-name)
              (string= (buffer-file-name)
-                      (expand-file-name "~/org/tasks.org"))
+                      (expand-file-name "~/st/org/tasks.org"))
              (string= org-state "DONE"))
     (org-archive-subtree)))
 
