@@ -91,8 +91,8 @@
   (setq org-agenda-custom-commands
         '(("d" "Daily Agenda + Tasks with Project"
            ((agenda ""
-                    ((org-agenda-span 1)
-                     (org-agenda-overriding-header "Today's Schedule")))
+                   ;;((org-agenda-span 1)
+                   ((org-agenda-overriding-header "Today's Schedule")))
             (alltodo ""
                      ((org-agenda-overriding-header "Meetings")
                       (org-agenda-files '("~/st/org/meetings.org"))))
