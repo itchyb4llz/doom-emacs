@@ -16,7 +16,7 @@
 
 ;; Theme & Font
 (setq doom-theme 'doom-gruvbox)
-(setq doom-font (font-spec :family "Agave Nerd Font" :size 14))
+(setq doom-font (font-spec :family "JetBrains Mono Nerd Font" :size 12))
 
 ;; Column number in modeline
 (column-number-mode 1)
@@ -127,7 +127,7 @@
 
   ;; Faces
   (set-face-attribute 'org-document-title nil
-                      :font "Agave Nerd Font"
+                      :font "JetBrains Mono Nerd Font"
                       :weight 'bold
                       :height 1.0)
 
@@ -135,7 +135,7 @@
                    org-level-4 org-level-5 org-level-6
                    org-level-7 org-level-8))
     (set-face-attribute face nil
-                        :font "Agave Nerd Font"
+                        :font "JetBrains Mono Nerd Font"
                         :weight 'medium
                         :height 1.0))
 
