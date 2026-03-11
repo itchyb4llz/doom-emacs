@@ -15,8 +15,8 @@
   (visual-fill-column-mode 1))
 
 ;; Theme & Font
-(setq doom-theme 'doom-gruvbox)
-(setq doom-font (font-spec :family "JetBrains Mono Nerd Font" :size 12))
+(setq doom-theme 'doom-rose-pine)
+(setq doom-font (font-spec :family "JetBrains Mono Nerd Font" :size 13))
 
 ;; Column number in modeline
 (column-number-mode 1)
@@ -40,7 +40,7 @@
 (setq-default indent-tabs-mode nil)
 
 ;; ------ ORG
-(setq org-directory "~/st/org")
+(setq org-directory "~/org")
 
 (defun jd/org-mode-setup ()
   (org-indent-mode)
@@ -58,15 +58,17 @@
         org-fontify-quote-and-verse-blocks t
         org-src-tab-acts-natively t
         org-edit-src-content-indentation 2
-        org-startup-folded 'showeverything
+        org-startup-folded 'content
         org-cycle-separator-lines 2)
 
   (setq org-agenda-files
-        '("~/st/org/archive.org"
-          "~/st/org/tasks.org"
-          "~/st/org/inbox.org"
-          "~/st/org/meetings.org"
-          "~/st/org/projects.org"))
+        '("~/org/archive.org"
+          "~/org/agenda.org"
+          "~/org/tickets.org"
+          "~/org/tasks.org"
+          "~/org/inbox.org"
+          "~/org/meetings.org"
+          "~/org/projects.org"))
 
   (setq org-log-done 'time
         org-log-into-drawer t
@@ -89,19 +91,25 @@
         txt)))
 
   (setq org-agenda-custom-commands
-        '(("d" "Daily Agenda + Tasks with Project"
+        '(("d" "Daily Agenda + Meetings + Tickets + Tasks + Inbox"
            ((agenda ""
                    ;;((org-agenda-span 1)
                    ((org-agenda-overriding-header "Today's Schedule")))
             (alltodo ""
+                     ((org-agenda-overriding-header "Agenda")
+                      (org-agenda-files '("~/org/agenda.org"))))
+            (alltodo ""
                      ((org-agenda-overriding-header "Meetings")
-                      (org-agenda-files '("~/st/org/meetings.org"))))
+                      (org-agenda-files '("~/org/meetings.org"))))
+            (alltodo ""
+                     ((org-agenda-overriding-header "Tickets")
+                      (org-agenda-files '("~/org/tickets.org"))))
             (alltodo ""
                      ((org-agenda-overriding-header "Tasks")
-                      (org-agenda-files '("~/st/org/tasks.org"))))
+                      (org-agenda-files '("~/org/tasks.org"))))
             (alltodo ""
                      ((org-agenda-overriding-header "Inbox")
-                      (org-agenda-files '("~/st/org/inbox.org"))))))))
+                      (org-agenda-files '("~/org/inbox.org"))))))))
 
   ;; Refile
   (setq org-refile-targets '((nil :maxlevel . 1)
@@ -163,7 +171,7 @@
 ;; ------ ORG ROAM
 (defun jd/org-get-projects ()
   "Return a list of project names from projects.org top-level headings."
-  (let ((file "~/st/org/projects.org")
+  (let ((file "~//org/projects.org")
         projects)
     (when (file-exists-p file)
       (with-current-buffer (find-file-noselect file)
@@ -175,7 +183,7 @@
 
 (use-package! org-roam
   :custom
-  (org-roam-directory "~/st/org/")
+  (org-roam-directory "~/org/")
   (org-roam-completion-everywhere t)
 
   (org-roam-capture-templates
@@ -215,13 +223,13 @@
   (org-roam-db-autosync-mode))
 
 ;; ------ AUTO ARCHIVE
-(setq org-archive-location "~/st/org/archive.org::")
+(setq org-archive-location "~/org/archive.org::")
 (setq org-archive-mark-done nil)
 
 (defun jd/org-auto-archive-done-tasks ()
   (when (and (buffer-file-name)
              (string= (buffer-file-name)
-                      (expand-file-name "~/st/org/tasks.org"))
+                      (expand-file-name "~/org/tasks.org"))
              (string= org-state "DONE"))
     (org-archive-subtree)))
 
