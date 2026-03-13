@@ -4,7 +4,7 @@
 ;; Frame size
 (setq default-frame-alist
       '((width . 110)
-        (height . 64)))
+        (height . 54)))
 
 (setq visual-fill-column-width 120
       visual-fill-column-center-text t)
@@ -58,11 +58,12 @@
         org-fontify-quote-and-verse-blocks t
         org-src-tab-acts-natively t
         org-edit-src-content-indentation 2
-        org-startup-folded 'content
+        org-startup-folded 'overview
         org-cycle-separator-lines 2)
 
   (setq org-agenda-files
         '("~/org/archive.org"
+          "~/org/bills.org"
           "~/org/agenda.org"
           "~/org/tickets.org"
           "~/org/tasks.org"
@@ -225,13 +226,13 @@
 ;; ------ AUTO ARCHIVE
 (setq org-archive-location "~/org/archive.org::")
 (setq org-archive-mark-done nil)
-
 (defun jd/org-auto-archive-done-tasks ()
   (when (and (buffer-file-name)
-             (string= (buffer-file-name)
-                      (expand-file-name "~/org/tasks.org"))
+             (member (buffer-file-name)
+                     (mapcar #'expand-file-name
+                             '("~/org/tasks.org"
+                               "~/org/tickets.org")))
              (string= org-state "DONE"))
     (org-archive-subtree)))
-
 (add-hook 'org-after-todo-state-change-hook
           #'jd/org-auto-archive-done-tasks)
