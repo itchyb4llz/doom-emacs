@@ -17,8 +17,8 @@
   (visual-fill-column-mode 1))
 
 ;; Theme & Font
-(setq doom-theme 'doom-rose-pine)
-(setq doom-font (font-spec :family "JetBrains Mono Nerd Font" :size 13))
+(setq doom-theme 'doom-gruvbox)
+(setq doom-font (font-spec :family "JetBrains Mono Nerd Font" :size 12))
 
 ;; Column number in modeline
 (column-number-mode 1)
