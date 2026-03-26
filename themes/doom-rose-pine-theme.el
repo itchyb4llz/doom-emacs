@@ -47,8 +47,8 @@
   ;; Main theme colors
   (
     ;; name        default   256       16
-    (base           '("#191724" "#191724" "black"       ))
-    (surface        '("#1f1d2e" "#1f1d2e" "brightblack" ))
+    (base           '("#000000" "#000000" "black"       ))
+    (surface        '("#000000" "#000000" "brightblack" ))
     (overlay        '("#26233a" "#26233a" "brightblack" ))
     (muted          '("#6e6a86" "#6e6a86" "brightblack" ))
     (subtle         '("#908caa" "#908caa" "brightblack" ))
