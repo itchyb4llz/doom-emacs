@@ -5,8 +5,8 @@
 ;; ═══════════════════════════════════════════════════════════════════
 
 (setq default-frame-alist
-      '((width . 110)
-        (height . 54)))
+      '((width . 120)
+        (height . 62)))
 
 (setq visual-fill-column-width 120
       visual-fill-column-center-text t)
@@ -275,7 +275,10 @@
   ;; ─── Babel ────────────────────────────────────────────────────
   (org-babel-do-load-languages
    'org-babel-load-languages
-   '((emacs-lisp . t)))
+   '((emacs-lisp . t)
+     (rust . t)
+     (typescript . t)
+     (javascript . t)))
 
   (push '("conf-unix" . conf-unix) org-src-lang-modes)
 
