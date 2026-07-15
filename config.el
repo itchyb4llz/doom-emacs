@@ -13,9 +13,6 @@
 
 (add-hook 'org-mode-hook #'visual-fill-column-mode)
 
-(defun jd/org-mode-visual-fill ()
-  (visual-fill-column-mode 1))
-
 ;; Theme & Font
 (setq doom-theme 'doom-one)
 (setq doom-font (font-spec :family "JetBrains Mono Nerd Font" :size 12))
@@ -23,8 +20,7 @@
 ;; Column number in modeline
 (column-number-mode 1)
 
-;; Line numbers
-;; Options: nil, t, 'relative
+;; Line numbers — off in prose/terminal modes
 (setq display-line-numbers-type 'relative)
 
 (dolist (mode '(org-mode-hook
@@ -70,7 +66,7 @@
         org-cycle-separator-lines 2)
 
   ;; ─── Agenda Files ─────────────────────────────────────────────
-  ;; Picks up inbox, tasks, meetings, bills + ALL client files automatically
+  ;; Core files + all real client files (excludes _template.org)
   (setq org-agenda-files
         (append
          (mapcar (lambda (f) (concat org-directory f))
@@ -78,23 +74,25 @@
                    "tasks.org"
                    "meetings.org"
                    "bills.org"))
-         (file-expand-wildcards (concat org-directory "clients/*.org"))))
+         (seq-remove
+          (lambda (f) (string-match-p "_template\\.org$" f))
+          (file-expand-wildcards (concat org-directory "clients/*.org")))))
 
   ;; ─── Logging ──────────────────────────────────────────────────
   (setq org-log-done 'time
         org-log-into-drawer t
-        org-agenda-start-with-log-mode nil   ;; off by default, less noise
+        org-agenda-start-with-log-mode nil
         org-agenda-start-day nil
         org-agenda-start-on-weekday nil)
 
   ;; ─── TODO Keywords ────────────────────────────────────────────
   (setq org-todo-keywords
         '((sequence
-           "TODO(t)"        ;; not started
-           "NEXT(n!)"       ;; decided: do this next
-           "IN-PROGRESS(i)" ;; actively working
-           "WAIT(w@/!)"     ;; blocked on someone else
-           "REVIEW(v)"      ;; needs review / QA
+           "TODO(t)"
+           "NEXT(n!)"
+           "IN-PROGRESS(i)"
+           "WAIT(w@/!)"
+           "REVIEW(v)"
            "|"
            "DONE(d!)"
            "CANCELLED(c@)")))
@@ -129,24 +127,20 @@
   (setq org-agenda-skip-deadline-if-done t)
   (setq org-agenda-window-setup 'current-window)
 
-  (defun my/client-org-files ()
-    (file-expand-wildcards
-     (expand-file-name "clients/*.org" org-directory)))
-
   (setq org-agenda-custom-commands
         '(
           ;; ── d: Daily Driver — open every morning ──────────────
-          ("d" "🗓 Daily Driver"
+          ("d" "Daily Driver"
            ((agenda ""
                     ((org-agenda-span 1)
                      (org-agenda-sorting-strategy
                       '(deadline-up priority-down time-up))
                      (org-deadline-warning-days 2)
                      (org-agenda-overriding-header
-                      "━━━ ⚡ TODAY — Deadlines & Scheduled ━━━━━━━━━━━\n")))
+                      "TODAY — Deadlines & Scheduled\n")))
             (todo "NEXT|IN-PROGRESS"
                   ((org-agenda-overriding-header
-                    "\n━━━ 🎯 IN FLIGHT — Next & In Progress ━━━━━━━━━━\n")
+                    "\nIN FLIGHT — Next & In Progress\n")
                    (org-agenda-sorting-strategy '(priority-down deadline-up))))
             (todo "TODO"
                   ((org-agenda-skip-function
@@ -154,16 +148,16 @@
                    (org-agenda-sorting-strategy '(priority-down effort-up))
                    (org-agenda-max-entries 8)
                    (org-agenda-overriding-header
-                    "\n━━━ 📋 UNSCHEDULED — Priority Pool (top 8) ━━━━━\n")))
+                    "\nUNSCHEDULED — Priority Pool (top 8)\n")))
             (todo "WAIT"
                   ((org-agenda-overriding-header
-                    "\n━━━ ⏳ WAITING ON SOMEONE ━━━━━━━━━━━━━━━━━━━━━\n")))
+                    "\nWAITING ON SOMEONE\n")))
             (todo "REVIEW"
                   ((org-agenda-overriding-header
-                    "\n━━━ 🔍 NEEDS REVIEW ━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")))))
+                    "\nNEEDS REVIEW\n")))))
 
-          ;; ── o: Overdue Audit — when overwhelmed ───────────────
-          ("o" "🚨 Overdue & At Risk"
+          ;; ── o: Overdue Audit ──────────────────────────────────
+          ("o" "Overdue & At Risk"
            ((agenda ""
                     ((org-agenda-span 1)
                      (org-agenda-use-time-grid nil)
@@ -171,42 +165,44 @@
                      (org-deadline-warning-days 3)
                      (org-agenda-sorting-strategy '(deadline-up priority-down))
                      (org-agenda-overriding-header
-                      "━━━ 🚨 OVERDUE + DUE IN 3 DAYS ━━━━━━━━━━━━━━━━\n")))))
+                      "OVERDUE + DUE IN 3 DAYS\n")))))
 
-          ;; ── w: Week Ahead — for planning ──────────────────────
-          ("w" "📆 Week Ahead"
+          ;; ── w: Week Ahead ─────────────────────────────────────
+          ("w" "Week Ahead"
            ((agenda ""
                     ((org-agenda-span 7)
                      (org-agenda-sorting-strategy '(deadline-up priority-down))
                      (org-agenda-overriding-header
-                      "━━━ 📆 NEXT 7 DAYS ━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")))
+                      "NEXT 7 DAYS\n")))
             (todo "NEXT"
                   ((org-agenda-overriding-header
-                    "\n━━━ ⚡ NEXT Actions across all projects ━━━━━━━━\n")))))
+                    "\nNEXT Actions across all projects\n")))))
 
-          ;; ── p: Client Projects — all client tasks only ─────────
-          ("p" "👤 Client Projects"
+          ;; ── p: Client Projects ────────────────────────────────
+          ("p" "Client Projects"
            ((agenda ""
                     ((org-agenda-overriding-header
-                      "━━━ 📆 DEADLINES & SCHEDULED ━━━━━━━━━━━━━━━━━━━\n")
+                      "DEADLINES & SCHEDULED\n")
                      (org-agenda-files
-                      (file-expand-wildcards
-                       (concat (file-name-as-directory org-directory) "clients/*.org")))
+                      (seq-remove
+                       (lambda (f) (string-match-p "_template\\.org$" f))
+                       (file-expand-wildcards
+                        (concat (file-name-as-directory org-directory) "clients/*.org"))))
                      (org-agenda-span 7)
                      (org-agenda-use-time-grid nil)
                      (org-agenda-include-deadlines t)
-                     (org-agenda-include-todos t)
                      (org-agenda-sorting-strategy
-                      '(deadline-up priority-down time-up))
-                     ))
+                      '(deadline-up priority-down time-up))))
             (todo "TODO|NEXT|IN-PROGRESS|WAIT|REVIEW"
                   ((org-agenda-files
-                    (file-expand-wildcards
-                     (concat org-directory "clients/*.org")))
+                    (seq-remove
+                     (lambda (f) (string-match-p "_template\\.org$" f))
+                     (file-expand-wildcards
+                      (concat org-directory "clients/*.org"))))
                    (org-agenda-sorting-strategy
                     '(priority-down deadline-up category-up))
                    (org-agenda-overriding-header
-                    "━━━ 📁 ALL CLIENT TASKS by Priority ━━━━━━━━━━━━\n"))))
+                    "\nALL CLIENT TASKS by Priority\n"))))
            nil
            nil)))
 
@@ -222,55 +218,60 @@
   (setq org-capture-templates
         '(
           ;; Fastest capture — everything goes to inbox first
-          ("i" "📥 Inbox" entry
+          ("i" "Inbox" entry
            (file+headline "~/org/inbox.org" "Uncategorized")
            "* TODO %?\n  Captured: %U\n  %a"
            :empty-lines 1)
 
-          ;; Client task — pick which client file
-          ("c" "👤 Client Task" entry
+          ;; Client task — picks up actual client files (not template)
+          ("c" "Client Task" entry
            (file+headline
             (lambda ()
               (completing-read
                "Client: "
-               (file-expand-wildcards (concat org-directory "clients/*.org"))))
-            "📋 Active Tasks")
+               (seq-remove
+                (lambda (f) (string-match-p "_template\\.org$" f))
+                (file-expand-wildcards (concat org-directory "clients/*.org")))))
+            "Active Tasks")
            "* TODO [#B] %?\n  SCHEDULED: %t\n  :PROPERTIES:\n  :EFFORT: \n  :END:"
            :empty-lines 1)
 
-          ;; Bug report — goes straight to client Bugs section
-          ("b" "🐛 Bug Report" entry
+          ;; Bug report — goes to client Bugs section
+          ("b" "Bug Report" entry
            (file+headline
             (lambda ()
               (completing-read
                "Client: "
-               (file-expand-wildcards (concat org-directory "clients/*.org"))))
-            "🐛 Bugs")
+               (seq-remove
+                (lambda (f) (string-match-p "_template\\.org$" f))
+                (file-expand-wildcards (concat org-directory "clients/*.org")))))
+            "Bugs")
            "* TODO [#A] %?  :bug:\n  DEADLINE: %t\n  - Reported by ::\n  - Steps      ::\n  - Expected   ::\n  - Actual     ::"
            :empty-lines 1)
 
           ;; Personal / admin task
-          ("t" "✅ Personal Task" entry
-           (file+headline "~/org/tasks.org" "🔵 Someday / Backlog")
+          ("t" "Personal Task" entry
+           (file+headline "~/org/tasks.org" "Someday / Backlog")
            "* TODO [#C] %?\n  %U"
            :empty-lines 1)
 
           ;; Meeting note
-          ("m" "📅 Meeting" entry
-           (file+headline "~/org/meetings.org" "📝 Past Meetings")
+          ("m" "Meeting" entry
+           (file+headline "~/org/meetings.org" "Past Meetings")
            "* %U Meeting: %?\n  - Attendees ::\n  - Discussed ::\n  - Decisions ::\n  - Actions   ::"
            :empty-lines 1)
 
-          ;; Weekly review — creates a dated file in journal/weekly/
-          ("w" "📆 Weekly Review" plain
-           (file (lambda ()
-                   (let ((date (format-time-string "%Y-%m-%d")))
-                     (expand-file-name
-                      (concat "journal/weekly/review-" date ".org")
-                      org-directory))))
-           (file "~/org/weekly-review-template.org")
-           :immediate-finish t
-           :jump-to-captured t)))
+          ;; Bill / expense
+          ("$" "Bill" entry
+           (file+headline "~/org/bills.org" "One-off")
+           "* TODO %?\n  DUE: %t\n  Amount: \n  %U"
+           :empty-lines 1)
+
+          ;; Journal entry
+          ("j" "Journal" entry
+           (file+olp+datetree "~/org/journal/journal.org")
+           "* %U %?\n"
+           :empty-lines 1)))
 
   ;; ─── Babel ────────────────────────────────────────────────────
   (org-babel-do-load-languages
@@ -324,10 +325,6 @@
 ;; ORG ROAM
 ;; ═══════════════════════════════════════════════════════════════════
 
-(defun jd/org-get-clients ()
-  "Return a list of client org files from clients/ directory."
-  (file-expand-wildcards (concat org-directory "clients/*.org")))
-
 (use-package! org-roam
   :custom
   (org-roam-directory "~/org/")
@@ -350,8 +347,9 @@
       :unnarrowed t)
 
      ;; New client project — creates file in clients/
+     ;; Structure matches clients/_template.org
      ("p" "client project" plain
-      "* 📌 Meta
+      "* Meta
   :PROPERTIES:
   :CONTACT:    %^{Contact name}
   :EMAIL:      %^{Email}
@@ -362,19 +360,19 @@
   :CONTRACT:
   :END:
 
-* 📋 Active Tasks
+* Active Tasks
 
-* 🐛 Bugs
+* Bugs
 
-* ✨ Feature Requests
+* Feature Requests
 
-* ⏳ Waiting / Blocked
+* Waiting / Blocked
 
-* 💰 Invoices & Billing
+* Invoices & Billing
 
-* 📅 Meetings
+* Meetings
 
-* ✅ Done
+* Done
 "
       :if-new (file+head "clients/${slug}.org"
                          "#+title: ${title}\n\n")
@@ -419,10 +417,8 @@
   "Auto-archive DONE tasks from client files and tasks.org."
   (when (and (buffer-file-name)
              (or
-              ;; archive from tasks.org
               (string= (expand-file-name (buffer-file-name))
                        (expand-file-name "~/org/tasks.org"))
-              ;; archive from any client file
               (string-prefix-p
                (expand-file-name "~/org/clients/")
                (expand-file-name (buffer-file-name))))
@@ -432,8 +428,6 @@
 (add-hook 'org-after-todo-state-change-hook
           #'jd/org-auto-archive-done-tasks)
 
-;; Manual archive of all DONE tasks in current buffer
-;; Run with: M-x jd/org-archive-all-done
 (defun jd/org-archive-all-done ()
   "Archive all DONE and CANCELLED tasks in current buffer."
   (interactive)
@@ -447,7 +441,6 @@
 ;; KEYBINDINGS
 ;; ═══════════════════════════════════════════════════════════════════
 
-;; F12 → Daily Driver (zero friction morning open)
 (defun jd/daily-driver ()
   "Open Daily Driver agenda view."
   (interactive)
@@ -455,7 +448,6 @@
 
 (global-set-key (kbd "<f12>") #'jd/daily-driver)
 
-;; F11 → Quick inbox capture
 (defun jd/quick-capture ()
   "Quick capture to inbox."
   (interactive)
