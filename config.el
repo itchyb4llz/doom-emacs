@@ -465,16 +465,16 @@
 
 (defun jd/dashboard-widget-header ()
   (let* ((title "✦ JD's Workspace ✦")
-         (date  (format-time-string "%A, %b %e"))
-         (pad-t (make-string (max 0 (/ (- (window-width) (length title)) 2)) ?\s))
-         (pad-d (make-string (max 0 (/ (- (window-width) (length date))  2)) ?\s)))
+         (date  (format-time-string "%A, %b %-d"))
+         (pad-t (make-string (max 0 (/ (- (window-width (get-buffer-window (current-buffer))) (length title)) 2)) ?\s))
+         (pad-d (make-string (max 0 (/ (- (window-width (get-buffer-window (current-buffer))) (length date))  2)) ?\s)))
     (insert "\n\n\n\n\n")
     (insert pad-t (propertize title 'face 'font-lock-keyword-face) "\n")
     (insert pad-d (propertize date  'face 'font-lock-comment-face) "\n")))
 
 (defun jd/dashboard-widget-keys ()
   (let* ((inner  42)
-         (pad    (make-string (max 0 (/ (- (window-width) inner) 2)) ?\s))
+         (pad    (make-string (max 0 (/ (- (window-width (get-buffer-window (current-buffer))) inner) 2)) ?\s))
          (sep    (propertize (make-string inner ?─) 'face 'font-lock-comment-face))
          (groups `(("ORG"
                     ("<f11>    " . "Quick Capture → inbox")
@@ -497,7 +497,6 @@
                   "\n"))
         (insert "\n\n\n")))))
 
-(after! doom-dashboard
-  (setq +doom-dashboard-functions
-        '(jd/dashboard-widget-header
-          jd/dashboard-widget-keys)))
+(setq +dashboard-functions
+      '(jd/dashboard-widget-header
+        jd/dashboard-widget-keys))
