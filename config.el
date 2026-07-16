@@ -215,63 +215,67 @@
   (setq org-outline-path-complete-in-steps nil)
 
   ;; ─── Capture Templates ────────────────────────────────────────
-  (setq org-capture-templates
-        '(
-          ;; Fastest capture — everything goes to inbox first
-          ("i" "Inbox" entry
-           (file+headline "~/org/inbox.org" "Uncategorized")
-           "* TODO %?\n  Captured: %U\n  %a"
-           :empty-lines 1)
+  ;; Wrapped in after! org-capture so it fires after Doom's
+  ;; +org-init-capture-defaults-h (which runs on org-load-hook,
+  ;; after with-eval-after-load 'org, and would overwrite these).
+  (after! org-capture
+    (setq org-capture-templates
+          '(
+            ;; Fastest capture — everything goes to inbox first
+            ("i" "Inbox" entry
+             (file+headline "~/org/inbox.org" "Uncategorized")
+             "* TODO %?\n  Captured: %U\n  %a"
+             :empty-lines 1)
 
-          ;; Client task — picks up actual client files (not template)
-          ("c" "Client Task" entry
-           (file+headline
-            (lambda ()
-              (completing-read
-               "Client: "
-               (seq-remove
-                (lambda (f) (string-match-p "_template\\.org$" f))
-                (file-expand-wildcards (concat org-directory "clients/*.org")))))
-            "Active Tasks")
-           "* TODO [#B] %?\n  SCHEDULED: %t\n  :PROPERTIES:\n  :EFFORT: \n  :END:"
-           :empty-lines 1)
+            ;; Client task — picks up actual client files (not template)
+            ("c" "Client Task" entry
+             (file+headline
+              (lambda ()
+                (completing-read
+                 "Client: "
+                 (seq-remove
+                  (lambda (f) (string-match-p "_template\\.org$" f))
+                  (file-expand-wildcards (concat org-directory "clients/*.org")))))
+              "Active Tasks")
+             "* TODO [#B] %?\n  SCHEDULED: %t\n  :PROPERTIES:\n  :EFFORT: \n  :END:"
+             :empty-lines 1)
 
-          ;; Bug report — goes to client Bugs section
-          ("b" "Bug Report" entry
-           (file+headline
-            (lambda ()
-              (completing-read
-               "Client: "
-               (seq-remove
-                (lambda (f) (string-match-p "_template\\.org$" f))
-                (file-expand-wildcards (concat org-directory "clients/*.org")))))
-            "Bugs")
-           "* TODO [#A] %?  :bug:\n  DEADLINE: %t\n  - Reported by ::\n  - Steps      ::\n  - Expected   ::\n  - Actual     ::"
-           :empty-lines 1)
+            ;; Bug report — goes to client Bugs section
+            ("b" "Bug Report" entry
+             (file+headline
+              (lambda ()
+                (completing-read
+                 "Client: "
+                 (seq-remove
+                  (lambda (f) (string-match-p "_template\\.org$" f))
+                  (file-expand-wildcards (concat org-directory "clients/*.org")))))
+              "Bugs")
+             "* TODO [#A] %?  :bug:\n  DEADLINE: %t\n  - Reported by ::\n  - Steps      ::\n  - Expected   ::\n  - Actual     ::"
+             :empty-lines 1)
 
-          ;; Personal / admin task
-          ("t" "Personal Task" entry
-           (file+headline "~/org/tasks.org" "Someday / Backlog")
-           "* TODO [#C] %?\n  %U"
-           :empty-lines 1)
+            ;; Personal / admin task
+            ("t" "Personal Task" entry
+             (file+headline "~/org/tasks.org" "Someday / Backlog")
+             "* TODO [#C] %?\n  %U"
+             :empty-lines 1)
 
-          ;; Meeting note
-          ("m" "Meeting" entry
-           (file+headline "~/org/meetings.org" "Past Meetings")
-           "* %U Meeting: %?\n  - Attendees ::\n  - Discussed ::\n  - Decisions ::\n  - Actions   ::"
-           :empty-lines 1)
+            ;; Meeting note
+            ("m" "Meeting" entry
+             (file+headline "~/org/meetings.org" "Past Meetings")
+             "* %U Meeting: %?\n  - Attendees ::\n  - Discussed ::\n  - Decisions ::\n  - Actions   ::"
+             :empty-lines 1)
 
-          ;; Bill / expense
-          ("$" "Bill" entry
-           (file+headline "~/org/bills.org" "One-off")
-           "* TODO %?\n  DUE: %t\n  Amount: \n  %U"
-           :empty-lines 1)
+            ;; Bill / expense
+            ("$" "Bill" entry
+             (file+headline "~/org/bills.org" "One-off")
+             "* TODO %?\n  DUE: %t\n  Amount: \n  %U"
+             :empty-lines 1)
 
-          ;; Journal entry
-          ("j" "Journal" entry
-           (file+olp+datetree "~/org/journal/journal.org")
-           "* %U %?\n"
-           :empty-lines 1)))
+            ;; Journal entry
+            ("j" "Journal" entry
+             (file+olp+datetree "~/org/journal/journal.org")
+             "* %U %?\n"
+             :empty-lines 1))))
 
   ;; ─── Babel ────────────────────────────────────────────────────
   (org-babel-do-load-languages
@@ -454,3 +458,20 @@
   (org-capture nil "i"))
 
 (global-set-key (kbd "<f11>") #'jd/quick-capture)
+
+;; ═══════════════════════════════════════════════════════════════════
+;; DASHBOARD
+;; ═══════════════════════════════════════════════════════════════════
+
+(defun jd/dashboard-widget-header ()
+  (let* ((title "✦ JD's Workspace ✦")
+         (date  (format-time-string "%A, %b %e"))
+         (pad-t (make-string (max 0 (/ (- (window-width) (length title)) 2)) ?\s))
+         (pad-d (make-string (max 0 (/ (- (window-width) (length date))  2)) ?\s)))
+    (insert "\n\n\n\n\n")
+    (insert pad-t (propertize title 'face 'font-lock-keyword-face) "\n")
+    (insert pad-d (propertize date  'face 'font-lock-comment-face) "\n")))
+
+(after! doom-dashboard
+  (setq +doom-dashboard-functions
+        '(jd/dashboard-widget-header)))
