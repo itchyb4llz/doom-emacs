@@ -472,6 +472,32 @@
     (insert pad-t (propertize title 'face 'font-lock-keyword-face) "\n")
     (insert pad-d (propertize date  'face 'font-lock-comment-face) "\n")))
 
+(defun jd/dashboard-widget-keys ()
+  (let* ((inner  42)
+         (pad    (make-string (max 0 (/ (- (window-width) inner) 2)) ?\s))
+         (sep    (propertize (make-string inner ?─) 'face 'font-lock-comment-face))
+         (groups `(("ORG"
+                    ("<f11>    " . "Quick Capture → inbox")
+                    ("<f12>    " . "Daily Driver agenda"))
+                   ("ROAM"
+                    ("C-c n c  " . "Capture note")
+                    ("C-c n f  " . "Find node")
+                    ("C-c n i  " . "Insert node link")
+                    ("C-c n l  " . "Toggle roam buffer")))))
+    (insert "\n\n\n")
+    (dolist (group groups)
+      (let ((label (car group))
+            (rows  (cdr group)))
+        (insert pad (propertize label 'face 'font-lock-keyword-face) "\n")
+        (insert pad sep "\n")
+        (dolist (row rows)
+          (insert pad
+                  (propertize (car row) 'face 'font-lock-string-face)
+                  (propertize (cdr row) 'face 'font-lock-comment-face)
+                  "\n"))
+        (insert "\n\n\n")))))
+
 (after! doom-dashboard
   (setq +doom-dashboard-functions
-        '(jd/dashboard-widget-header)))
+        '(jd/dashboard-widget-header
+          jd/dashboard-widget-keys)))
