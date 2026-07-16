@@ -464,7 +464,7 @@
 ;; ═══════════════════════════════════════════════════════════════════
 
 (defun jd/dashboard-widget-header ()
-  (let* ((title "✦ JD's Workspace ✦")
+  (let* ((title "✦ Jaj's Workspace ✦")
          (date  (format-time-string "%A, %b %-d"))
          (pad-t (make-string (max 0 (/ (- (window-width (get-buffer-window (current-buffer))) (length title)) 2)) ?\s))
          (pad-d (make-string (max 0 (/ (- (window-width (get-buffer-window (current-buffer))) (length date))  2)) ?\s)))
