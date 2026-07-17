@@ -62,7 +62,7 @@
         org-fontify-quote-and-verse-blocks t
         org-src-tab-acts-natively t
         org-edit-src-content-indentation 2
-        org-startup-folded 'overview
+        org-startup-folded 'showall
         org-cycle-separator-lines 2)
 
   ;; ─── Agenda Files ─────────────────────────────────────────────
@@ -75,8 +75,11 @@
                    "meetings.org"
                    "bills.org"))
          (seq-remove
-          (lambda (f) (string-match-p "_template\\.org$" f))
-          (file-expand-wildcards (concat org-directory "clients/*.org")))))
+          (lambda (f)
+            (string-match-p "_template\\.org$" f))
+          (append
+           (file-expand-wildcards (concat org-directory "clients/*.org"))
+           (file-expand-wildcards (concat org-directory "projects/*.org"))))))
 
   ;; ─── Logging ──────────────────────────────────────────────────
   (setq org-log-done 'time
@@ -263,18 +266,6 @@
             ("m" "Meeting" entry
              (file+headline "~/org/meetings.org" "Past Meetings")
              "* %U Meeting: %?\n  - Attendees ::\n  - Discussed ::\n  - Decisions ::\n  - Actions   ::"
-             :empty-lines 1)
-
-            ;; Bill / expense
-            ("$" "Bill" entry
-             (file+headline "~/org/bills.org" "One-off")
-             "* TODO %?\n  DUE: %t\n  Amount: \n  %U"
-             :empty-lines 1)
-
-            ;; Journal entry
-            ("j" "Journal" entry
-             (file+olp+datetree "~/org/journal/journal.org")
-             "* %U %?\n"
              :empty-lines 1))))
 
   ;; ─── Babel ────────────────────────────────────────────────────
@@ -402,44 +393,57 @@
       :target (file "inbox.org")
       :unnarrowed t)))
 
+ (org-roam-dailies-directory "~/org/journal/")
+  (org-roam-dailies-capture-templates
+   '(("d" "default" entry "* %<%I:%M %p>: %?"
+      :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n\n"))))
+
+
   :bind (("C-c n f" . org-roam-node-find)
          ("C-c n i" . org-roam-node-insert)
          ("C-c n c" . org-roam-capture)
-         ("C-c n l" . org-roam-buffer-toggle))
-
+         ("C-c n l" . org-roam-buffer-toggle)
+         :map org-mode-map
+         ("C-M-i" . completion-at-point)
+         :map org-roam-dailies-map
+         ("Y" . org-roam-dailies-capture-yesterday)
+         ("T" . org-roam-dailies-capture-tomorrow))
+  :bind-keymap
+  ("C-c n d" . org-roam-dailies-map)
   :config
+  (require 'org-roam-dailies)
   (org-roam-db-autosync-mode))
 
 ;; ═══════════════════════════════════════════════════════════════════
 ;; AUTO ARCHIVE
 ;; ═══════════════════════════════════════════════════════════════════
 
-(setq org-archive-location "~/org/archive.org::")
-(setq org-archive-mark-done nil)
-
-(defun jd/org-auto-archive-done-tasks ()
-  "Auto-archive DONE tasks from client files and tasks.org."
-  (when (and (buffer-file-name)
-             (or
-              (string= (expand-file-name (buffer-file-name))
-                       (expand-file-name "~/org/tasks.org"))
-              (string-prefix-p
-               (expand-file-name "~/org/clients/")
-               (expand-file-name (buffer-file-name))))
-             (string= org-state "DONE"))
-    (org-archive-subtree)))
-
-(add-hook 'org-after-todo-state-change-hook
-          #'jd/org-auto-archive-done-tasks)
-
-(defun jd/org-archive-all-done ()
-  "Archive all DONE and CANCELLED tasks in current buffer."
-  (interactive)
-  (org-map-entries
-   (lambda ()
-     (org-archive-subtree)
-     (setq org-map-continue-from (outline-previous-heading)))
-   "/DONE|CANCELLED" 'file))
+;; (setq org-archive-location "~/org/archive.org::")
+;; (setq org-archive-mark-done nil)
+;;
+;; (defun jd/org-auto-archive-done-tasks ()
+;;   "Auto-archive DONE tasks from client files and tasks.org."
+;;   (when (and (buffer-file-name)
+;;              (or
+;;               (string= (expand-file-name (buffer-file-name))
+;;                        (expand-file-name "~/org/tasks.org"))
+;;               (string-prefix-p
+;;                (expand-file-name "~/org/clients/")
+;;                (expand-file-name (buffer-file-name))))
+;;              (string= org-state "DONE"))
+;;     (org-archive-subtree)))
+;;
+;; (add-hook 'org-after-todo-state-change-hook
+;;           #'jd/org-auto-archive-done-tasks)
+;;
+;; (defun jd/org-archive-all-done ()
+;;   "Archive all DONE and CANCELLED tasks in current buffer."
+;;   (interactive)
+;;   (org-map-entries
+;;    (lambda ()
+;;      (org-archive-subtree)
+;;      (setq org-map-continue-from (outline-previous-heading)))
+;;    "/DONE|CANCELLED" 'file))
 
 ;; ═══════════════════════════════════════════════════════════════════
 ;; KEYBINDINGS
