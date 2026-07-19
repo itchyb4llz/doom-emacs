@@ -62,7 +62,7 @@
         org-fontify-quote-and-verse-blocks t
         org-src-tab-acts-natively t
         org-edit-src-content-indentation 2
-        org-startup-folded 'showall
+        org-startup-folded 'show2levels
         org-cycle-separator-lines 2)
 
   ;; ─── Agenda Files ─────────────────────────────────────────────
