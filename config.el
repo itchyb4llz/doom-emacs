@@ -393,11 +393,60 @@
       :target (file "inbox.org")
       :unnarrowed t)))
 
- (org-roam-dailies-directory "~/org/journal/")
-  (org-roam-dailies-capture-templates
-   '(("d" "default" entry "* %<%I:%M %p>: %?"
-      :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n\n"))))
+(org-roam-dailies-directory "~/org/journal/")
+(org-roam-dailies-capture-templates
+ '(("d" "default" entry
+    "* %<%I:%M %p>\n%?"
+    :target
+    (file+head+olp
+     "%<%Y-%m-%d>.org"
+     "#+title: %<%Y-%m-%d>
 
+* Start Your Day
+
+** Reflection
+How am I feeling today?
+
+What are my top 3 priorities?
+
+What would make today successful?
+
+What am I avoiding?
+
+What am I grateful for?
+
+** Today's Focus
+- Main project:
+- Secondary task:
+- If I only finish one thing today, it will be:
+
+** Habits
+- [ ] Drink water
+- [ ] Coffee
+- [ ] Stretch
+- [ ] Review agenda
+- [ ] Check deadlines
+- [ ] Deep work session #1
+- [ ] Deep work session #2
+- [ ] Commit & push changes
+- [ ] Exercise
+- [ ] Read for 15 minutes
+
+** Reminders
+- Slow is smooth, smooth is fast.
+- Progress beats perfection.
+- Take breaks before you're exhausted.
+- Don't let perfect stop good enough.
+- Keep your inbox and desktop clean.
+
+** Wins
+
+** Ideas
+
+** Journal
+
+"
+     ("Start Your Day" "Journal")))))
 
   :bind (("C-c n f" . org-roam-node-find)
          ("C-c n i" . org-roam-node-insert)
