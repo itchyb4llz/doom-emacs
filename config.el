@@ -1,9 +1,5 @@
 ;; -*- lexical-binding: t; -*-
 
-;; ═══════════════════════════════════════════════════════════════════
-;; UI
-;; ═══════════════════════════════════════════════════════════════════
-
 (setq default-frame-alist
       '((width . 120)
         (height . 62)))
@@ -31,17 +27,9 @@
 
 (setq confirm-kill-emacs nil)
 
-;; ═══════════════════════════════════════════════════════════════════
-;; INDENTATION
-;; ═══════════════════════════════════════════════════════════════════
-
 (setq-default tab-width 2)
 (setq-default evil-shift-width 2)
 (setq-default indent-tabs-mode nil)
-
-;; ═══════════════════════════════════════════════════════════════════
-;; ORG
-;; ═══════════════════════════════════════════════════════════════════
 
 (setq org-directory "~/org/")
 
@@ -51,11 +39,10 @@
   (setq evil-auto-indent nil))
 
 (after! org
-
+  (setq org-modern-star nil)
   (add-hook 'org-mode-hook #'jd/org-mode-setup)
   (add-hook 'org-mode-hook #'hl-todo-mode)
 
-  ;; ─── Display ──────────────────────────────────────────────────
   (setq org-ellipsis "..."
         org-hide-emphasis-markers t
         org-src-fontify-natively t
@@ -65,30 +52,25 @@
         org-startup-folded 'show2levels
         org-cycle-separator-lines 2)
 
-  ;; ─── Agenda Files ─────────────────────────────────────────────
   ;; Core files + all real client files (excludes _template.org)
   (setq org-agenda-files
         (append
          (mapcar (lambda (f) (concat org-directory f))
-                 '("inbox.org"
-                   "tasks.org"
+                 '("bills.org"
+                   "calendar.org"
+                   "clients.org"
+                   "inbox.org"
                    "meetings.org"
-                   "bills.org"))
-         (seq-remove
-          (lambda (f)
-            (string-match-p "_template\\.org$" f))
-          (append
-           (file-expand-wildcards (concat org-directory "clients/*.org"))
-           (file-expand-wildcards (concat org-directory "projects/*.org"))))))
+                   "notes.org"
+                   "projects.org"
+                   "tasks.org"))))
 
-  ;; ─── Logging ──────────────────────────────────────────────────
   (setq org-log-done 'time
         org-log-into-drawer t
         org-agenda-start-with-log-mode nil
         org-agenda-start-day nil
         org-agenda-start-on-weekday nil)
 
-  ;; ─── TODO Keywords ────────────────────────────────────────────
   (setq org-todo-keywords
         '((sequence
            "TODO(t)"
@@ -109,21 +91,19 @@
           ("DONE"        . (:foreground "#6bcb77" :weight bold))
           ("CANCELLED"   . (:foreground "#555555" :strike-through t))))
 
-  ;; ─── Priority ─────────────────────────────────────────────────
   (setq org-priority-highest ?A
         org-priority-lowest  ?C
         org-priority-default ?B)
 
-  ;; ─── Tags ─────────────────────────────────────────────────────
   (setq org-tag-alist
         '((:startgroup)
           ("bug"     . ?b)
           ("feature" . ?f)
           ("waiting" . ?w)
-          ("invoice" . ?i)
+          ("issue" . ?i)
+          ("report" . ?r)
           (:endgroup)))
 
-  ;; ─── Agenda Custom Commands ───────────────────────────────────
   (setq org-agenda-block-separator "")
   (setq org-agenda-compact-blocks nil)
   (setq org-agenda-skip-scheduled-if-done t)
@@ -132,15 +112,14 @@
 
   (setq org-agenda-custom-commands
         '(
-          ;; ── d: Daily Driver — open every morning ──────────────
-          ("d" "Daily Driver"
+          ("d" "Dashboard"
            ((agenda ""
-                    ((org-agenda-span 1)
+                    ((org-agenda-span 7)
                      (org-agenda-sorting-strategy
                       '(deadline-up priority-down time-up))
                      (org-deadline-warning-days 2)
                      (org-agenda-overriding-header
-                      "TODAY — Deadlines & Scheduled\n")))
+                      "Deadlines & Scheduled\n")))
             (todo "NEXT|IN-PROGRESS"
                   ((org-agenda-overriding-header
                     "\nIN FLIGHT — Next & In Progress\n")
@@ -159,7 +138,6 @@
                   ((org-agenda-overriding-header
                     "\nNEEDS REVIEW\n")))))
 
-          ;; ── o: Overdue Audit ──────────────────────────────────
           ("o" "Overdue & At Risk"
            ((agenda ""
                     ((org-agenda-span 1)
@@ -170,7 +148,6 @@
                      (org-agenda-overriding-header
                       "OVERDUE + DUE IN 3 DAYS\n")))))
 
-          ;; ── w: Week Ahead ─────────────────────────────────────
           ("w" "Week Ahead"
            ((agenda ""
                     ((org-agenda-span 7)
@@ -179,37 +156,8 @@
                       "NEXT 7 DAYS\n")))
             (todo "NEXT"
                   ((org-agenda-overriding-header
-                    "\nNEXT Actions across all projects\n")))))
+                    "\nNEXT Actions across all projects\n")))))))
 
-          ;; ── p: Client Projects ────────────────────────────────
-          ("p" "Client Projects"
-           ((agenda ""
-                    ((org-agenda-overriding-header
-                      "DEADLINES & SCHEDULED\n")
-                     (org-agenda-files
-                      (seq-remove
-                       (lambda (f) (string-match-p "_template\\.org$" f))
-                       (file-expand-wildcards
-                        (concat (file-name-as-directory org-directory) "clients/*.org"))))
-                     (org-agenda-span 7)
-                     (org-agenda-use-time-grid nil)
-                     (org-agenda-include-deadlines t)
-                     (org-agenda-sorting-strategy
-                      '(deadline-up priority-down time-up))))
-            (todo "TODO|NEXT|IN-PROGRESS|WAIT|REVIEW"
-                  ((org-agenda-files
-                    (seq-remove
-                     (lambda (f) (string-match-p "_template\\.org$" f))
-                     (file-expand-wildcards
-                      (concat org-directory "clients/*.org"))))
-                   (org-agenda-sorting-strategy
-                    '(priority-down deadline-up category-up))
-                   (org-agenda-overriding-header
-                    "\nALL CLIENT TASKS by Priority\n"))))
-           nil
-           nil)))
-
-  ;; ─── Refile ───────────────────────────────────────────────────
   (setq org-refile-targets
         '((org-agenda-files :maxlevel . 3)
           (nil :maxlevel . 3)))
@@ -217,58 +165,43 @@
   (setq org-refile-allow-creating-parent-nodes 'confirm)
   (setq org-outline-path-complete-in-steps nil)
 
-  ;; ─── Capture Templates ────────────────────────────────────────
   ;; Wrapped in after! org-capture so it fires after Doom's
   ;; +org-init-capture-defaults-h (which runs on org-load-hook,
   ;; after with-eval-after-load 'org, and would overwrite these).
   (after! org-capture
     (setq org-capture-templates
           '(
-            ;; Fastest capture — everything goes to inbox first
             ("i" "Inbox" entry
-             (file+headline "~/org/inbox.org" "Uncategorized")
+             (file "~/org/inbox.org")
              "* TODO %?\n  Captured: %U\n  %a"
              :empty-lines 1)
 
-            ;; Client task — picks up actual client files (not template)
-            ("c" "Client Task" entry
-             (file+headline
-              (lambda ()
-                (completing-read
-                 "Client: "
-                 (seq-remove
-                  (lambda (f) (string-match-p "_template\\.org$" f))
-                  (file-expand-wildcards (concat org-directory "clients/*.org")))))
-              "Active Tasks")
-             "* TODO [#B] %?\n  SCHEDULED: %t\n  :PROPERTIES:\n  :EFFORT: \n  :END:"
+            ("c" "Client" entry
+             (file "~/org/clients.org")
+             "* %^{Client}\n** Active Tasks\n** Bugs\n** Feature Requests\n** Waiting/Blocked\n** Invoices & Billing\n** Done/Archive\n")
+
+            ("n" "Notes" entry
+             (file+headline "~/org/notes.org" "Inbox")
+             "* [%<%Y-%m-%d %a>] %^{Title}\n:PROPERTIES:\n:CREATED: %U\n:END:\n%?"
              :empty-lines 1)
 
-            ;; Bug report — goes to client Bugs section
-            ("b" "Bug Report" entry
-             (file+headline
-              (lambda ()
-                (completing-read
-                 "Client: "
-                 (seq-remove
-                  (lambda (f) (string-match-p "_template\\.org$" f))
-                  (file-expand-wildcards (concat org-directory "clients/*.org")))))
-              "Bugs")
-             "* TODO [#A] %?  :bug:\n  DEADLINE: %t\n  - Reported by ::\n  - Steps      ::\n  - Expected   ::\n  - Actual     ::"
-             :empty-lines 1)
+            ("b" "Bills" entry
+             (file "~/org/bills.org")
+             "* TODO %^{New Bill}\nDEADLINE: %^{DEADLINE}T\n:PROPERTIES:\n:CREATED: %U\n:END:\n%?")
 
-            ;; Personal / admin task
-            ("t" "Personal Task" entry
-             (file+headline "~/org/tasks.org" "Someday / Backlog")
-             "* TODO [#C] %?\n  %U"
-             :empty-lines 1)
+            ("e" "Event" entry
+             (file+headline "~/org/calendar.org" "Events")
+             "* %^{Event}\nSCHEDULED: %^{SCHEDULED}T\n:PROPERTIES:\n:CREATED: %U\n:CONTACT:\n:END:\n%?")
 
-            ;; Meeting note
+            ("d" "Deadline" entry
+             (file+headline "~/org/calendar.org" "Deadlines")
+             "* TODO %^{Task}\nDEADLINE: %^{Deadline}T\n:PROPERTIES:\n:CREATED: %U\n:END:\n%?")
+
             ("m" "Meeting" entry
-             (file+headline "~/org/meetings.org" "Past Meetings")
-             "* %U Meeting: %?\n  - Attendees ::\n  - Discussed ::\n  - Decisions ::\n  - Actions   ::"
-             :empty-lines 1))))
+             "* TODO %^{Meeting}\nSCHEDULED: <%^{Date}>\n%?"
+             :target (file "meetings.org")
+             :unnarrowed t))))
 
-  ;; ─── Babel ────────────────────────────────────────────────────
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
@@ -278,7 +211,6 @@
 
   (push '("conf-unix" . conf-unix) org-src-lang-modes)
 
-  ;; ─── Faces ────────────────────────────────────────────────────
   (set-face-attribute 'org-document-title nil
                       :font "JetBrains Mono Nerd Font"
                       :weight 'bold
@@ -297,16 +229,11 @@
   (set-face-attribute 'org-code    nil :inherit '(shadow fixed-pitch))
   (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
 
-  ;; ─── Structure Templates ──────────────────────────────────────
   (require 'org-tempo)
   (add-to-list 'org-structure-template-alist '("sh" . "src sh"))
   (add-to-list 'org-structure-template-alist '("ts" . "src typescript"))
 
 ) ;; end (after! org)
-
-;; ═══════════════════════════════════════════════════════════════════
-;; EVIL ORG
-;; ═══════════════════════════════════════════════════════════════════
 
 (use-package! evil-org
   :after org
@@ -316,10 +243,6 @@
   (require 'evil-org-agenda)
   (evil-org-agenda-set-keys))
 
-;; ═══════════════════════════════════════════════════════════════════
-;; ORG ROAM
-;; ═══════════════════════════════════════════════════════════════════
-
 (use-package! org-roam
   :custom
   (org-roam-directory "~/org/")
@@ -327,68 +250,13 @@
 
   (org-roam-capture-templates
    '(
-     ;; Default note — goes to notes/
-     ("d" "default" plain
+     ("d" "Default" plain
       "%?"
       :if-new (file+head "notes/${slug}.org"
-                         "#+title: ${title}\n#+author: Jaj Dollesin\n#+date: %U\n\n")
+                         "#+title: ${title}\n#+date: %U\n\n")
       :unnarrowed t)
 
-     ;; Dev note — goes to notes/dev/
-     ("v" "dev note" plain
-      "%?"
-      :if-new (file+head "notes/dev/${slug}.org"
-                         "#+title: ${title}\n#+author: Jaj Dollesin\n#+date: %U\n\n")
-      :unnarrowed t)
-
-     ;; New client project — creates file in clients/
-     ;; Structure matches clients/_template.org
-     ("p" "client project" plain
-      "* Meta
-  :PROPERTIES:
-  :CONTACT:    %^{Contact name}
-  :EMAIL:      %^{Email}
-  :REPO:       %^{Repo URL}
-  :STAGING:
-  :PRODUCTION:
-  :STARTED:    %U
-  :CONTRACT:
-  :END:
-
-* Active Tasks
-
-* Bugs
-
-* Feature Requests
-
-* Waiting / Blocked
-
-* Invoices & Billing
-
-* Meetings
-
-* Done
-"
-      :if-new (file+head "clients/${slug}.org"
-                         "#+title: ${title}\n\n")
-      :unnarrowed t)
-
-     ;; Task — goes to tasks.org
-     ("t" "Task" entry
-      "* TODO %^{Task}\n%^G%?"
-      :target (file "tasks.org")
-      :prepend t
-      :empty-lines 1
-      :unnarrowed t)
-
-     ;; Meeting
-     ("m" "Meeting" entry
-      "* TODO %^{Meeting}\nSCHEDULED: <%^{Date}>\n%?"
-      :target (file "meetings.org")
-      :unnarrowed t)
-
-     ;; Inbox
-     ("i" "inbox" entry
+     ("i" "Inbox" entry
       "* TODO %^{Task}\t%^G\n%?"
       :target (file "inbox.org")
       :unnarrowed t)))
@@ -402,51 +270,32 @@
      "%<%Y-%m-%d>.org"
      "#+title: %<%Y-%m-%d>
 
-* Start Your Day
+* Metrics
+** Sleep Quality
+- Time to Bed (last night):
+- Wake Time:
 
-** Reflection
-How am I feeling today?
+** Meals
+- [ ] Breakfast:
+- [ ] Lunch:
+- [ ] Dinner:
+- Snacks:
+  -
+* Morning Foundation
+** TODO Morning Prayer and Scripture
+** TODO Shower, Groom, and Dressed
+** TODO Review Day's Battle Plan
+** TODO System Update
+** TODO Check Reports: issues/bugs/emails/msg/missed calls
 
-What are my top 3 priorities?
-
-What would make today successful?
-
-What am I avoiding?
-
-What am I grateful for?
-
-** Today's Focus
+* Today's Focus
 - Main project:
 - Secondary task:
 - If I only finish one thing today, it will be:
 
-** Habits
-- [ ] Drink water
-- [ ] Coffee
-- [ ] Stretch
-- [ ] Review agenda
-- [ ] Check deadlines
-- [ ] Deep work session #1
-- [ ] Deep work session #2
-- [ ] Commit & push changes
-- [ ] Exercise
-- [ ] Read for 15 minutes
-
-** Reminders
-- Slow is smooth, smooth is fast.
-- Progress beats perfection.
-- Take breaks before you're exhausted.
-- Don't let perfect stop good enough.
-- Keep your inbox and desktop clean.
-
-** Wins
-
-** Ideas
-
-** Journal
-
+* Journal
 "
-     ("Start Your Day" "Journal")))))
+     ("Journal")))))
 
   :bind (("C-c n f" . org-roam-node-find)
          ("C-c n i" . org-roam-node-insert)
@@ -462,10 +311,6 @@ What am I grateful for?
   :config
   (require 'org-roam-dailies)
   (org-roam-db-autosync-mode))
-
-;; ═══════════════════════════════════════════════════════════════════
-;; AUTO ARCHIVE
-;; ═══════════════════════════════════════════════════════════════════
 
 ;; (setq org-archive-location "~/org/archive.org::")
 ;; (setq org-archive-mark-done nil)
@@ -494,10 +339,6 @@ What am I grateful for?
 ;;      (setq org-map-continue-from (outline-previous-heading)))
 ;;    "/DONE|CANCELLED" 'file))
 
-;; ═══════════════════════════════════════════════════════════════════
-;; KEYBINDINGS
-;; ═══════════════════════════════════════════════════════════════════
-
 (defun jd/daily-driver ()
   "Open Daily Driver agenda view."
   (interactive)
@@ -512,10 +353,6 @@ What am I grateful for?
 
 (global-set-key (kbd "<f11>") #'jd/quick-capture)
 
-;; ═══════════════════════════════════════════════════════════════════
-;; DASHBOARD
-;; ═══════════════════════════════════════════════════════════════════
-
 (defun jd/dashboard-widget-header ()
   (let* ((title "✦ Jaj's Workspace ✦")
          (date  (format-time-string "%A, %b %-d"))
@@ -523,6 +360,7 @@ What am I grateful for?
          (pad-d (make-string (max 0 (/ (- (window-width (get-buffer-window (current-buffer))) (length date))  2)) ?\s)))
     (insert "\n\n\n\n\n")
     (insert pad-t (propertize title 'face 'font-lock-keyword-face) "\n")
+
     (insert pad-d (propertize date  'face 'font-lock-comment-face) "\n")))
 
 (defun jd/dashboard-widget-keys ()
@@ -531,7 +369,9 @@ What am I grateful for?
          (sep    (propertize (make-string inner ?─) 'face 'font-lock-comment-face))
          (groups `(("ORG"
                     ("<f11>    " . "Quick Capture → inbox")
-                    ("<f12>    " . "Daily Driver agenda"))
+                    ("<f12>    " . "Dashboard agenda"))
+                   ("CAPTURE"
+                    ("SPC X    " . "Capture template"))
                    ("ROAM"
                     ("C-c n c  " . "Capture note")
                     ("C-c n f  " . "Find node")
